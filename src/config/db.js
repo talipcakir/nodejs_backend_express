@@ -44,12 +44,16 @@ connection.connect((err) => {
 				else console.log("✅ 'users' tablosu oluşturuldu veya zaten mevcut.");
 			});
 
+			connection.query(`
+			 		DROP TABLE IF EXISTS products;`);
+
 			// Products tablosu
 			const createProductsTable = `
 					CREATE TABLE IF NOT EXISTS products (
 						id INT AUTO_INCREMENT PRIMARY KEY,
 						title VARCHAR(255) NOT NULL,
 						price DECIMAL(10,2) NOT NULL,
+						category VARCHAR(100),
 						description TEXT,
 						image VARCHAR(255)
 					) COMMENT='Ürün bilgileri';
@@ -59,8 +63,8 @@ connection.connect((err) => {
 				else console.log("✅ 'products' tablosu oluşturuldu veya zaten mevcut.");
 			});
 
-			const insertDetaultProduct = `
-          INSERT INTO products (id, title, price, description, category, image) VALUES
+			connection.query(`
+				INSERT INTO products (id, title, price, description, category, image) VALUES
 (1, 'Apple iPhone 14 Pro Max 128Gb Deep Purple', 1399.00, 'Enhanced capabilities thanks to an enlarged display of 6.7 inches...', 'Smartphones', '/photo/Iphone 14 pro 1.png'),
 (2, 'Apple AirPods Max', 549.00, 'Computational audio. Listen, it''s powerful...', 'Audio', '/photo/hero__gnfk5g59t0qe_xlarge_2x 1.png'),
 (3, 'Playstation 5', 499.00, 'Incredibly powerful CPUs, GPUs, and an SSD...', 'Gaming', '/photo/PlayStation.png'),
@@ -73,21 +77,15 @@ connection.connect((err) => {
 (10, 'Sony WH-1000XM5 Headphones', 349.00, 'Our best ever noise cancelling headphones...', 'Audio', '/photo/Headphones.png'),
 (11, 'Canon EOS R6 Mark II', 2499.00, 'A full-frame mirrorless camera for hybrid shooters...', 'Cameras', '/photo/Cameras.png'),
 (12, 'Xbox Series X', 499.00, 'The fastest, most powerful Xbox ever...', 'Gaming', '/photo/Gaming.png');
-`;
-		});
-      connection.query(insertDetaultProduct, () => {
-        console.log("✅ Varsayılan ürünler eklendi");
-      });
 
-      const defaultAdmin = `
+				`);
+		});
+
+		const defaultAdmin = `
         INSERT INTO users (username, password, role) VALUES 
         ('${process.env.DEFAULT_ADMIN}', '${process.env.DEFAULT_ADMIN_PASSWORD}', 'admin')
         ON DUPLICATE KEY UPDATE username=username;
       `;
-      connection.query(defaultAdmin, (err) => {
-        if (err) console.error('❌ Varsayılan yönetici eklenemedi:', err.message);
-        else console.log("✅ Varsayılan yönetici eklendi veya zaten mevcut.");
-      });
 	});
 });
 

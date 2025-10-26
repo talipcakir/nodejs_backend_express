@@ -1,37 +1,60 @@
 const express = require('express');
 const router = express();
+const db = require('../config/db');
+
+router.get('/', (req, res) => {
+  res.send('Welcome to the Product API');
+});
 
 router.get('/products', (req, res) => {
-  res.json([
-    { id: 1, name: 'Product A' },
-    { id: 2, name: 'Product B' },
-  ]);
+  db.query(`SELECT * FROM products`, (err, results) => {
+    res.json(results);
+  });
 });
 
 router.get('/products/:id', (req, res) => {
   const productId = parseInt(req.params.id);
-  const products = [
-    { id: 1, name: 'Product A' },
-    { id: 2, name: 'Product B' },
-  ];
-  const product = products.find(p => p.id === productId);
-  if (product) {
-    res.json(product);
-  } else {
-    res.status(404).send('Product not found');
-  }
+  db.query(`SELECT * FROM products where id = ` + productId, (err,result) => {
+
+    // Ürün bulunamazsa 404 döndür
+    if (result.length === 0) {
+      return res.status(404).send('Product not found');
+    }
+
+    res.json(result);
+  });
 });
 
 router.post('/products', (req, res) => {
   const newProduct = req.body;
-  // In a real application, you would save the product to the database here
-  res.status(201).json(newProduct);
+  //title, price, description, category, image
+  console.log(JSON.stringify(newProduct));
+
+  db.query(
+    'INSERT INTO products (title, price, description, category, image) VALUES (?, ?, ?, ?, ?)',
+    [newProduct.title, newProduct.price, newProduct.description, newProduct.category, newProduct.image],
+    (err, result) => {
+      newProduct.id = result.insertId;
+      res.status(201).json(newProduct);
+    }
+  );
+  
 });
 
 router.put('/products/:id', (req, res) => {
   const productId = parseInt(req.params.id, 10);
   const updatedProduct = req.body;
-  // In a real application, you would update the product in the database here
+
+  db.query(
+    'UPDATE products SET title = ?, price = ?, description = ?, category = ?, image = ? WHERE id = ?',
+    [updatedProduct.title, updatedProduct.price, updatedProduct.description, updatedProduct.category, updatedProduct.image, productId],
+    (err, result) => {
+      if (err) {
+        return res.status(500).send('Error updating product');
+      }
+    }
+  );
+
   res.json({ id: productId, ...updatedProduct });
 });
 
