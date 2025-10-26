@@ -3,16 +3,12 @@ const router = express();
 const db = require('../config/db');
 
 router.get('/', (req, res) => {
-  res.send('Welcome to the Product API');
-});
-
-router.get('/products', (req, res) => {
   db.query(`SELECT * FROM products`, (err, results) => {
     res.json(results);
   });
 });
 
-router.get('/products/:id', (req, res) => {
+router.get('/:id', (req, res) => {
   const productId = parseInt(req.params.id);
   db.query(`SELECT * FROM products where id = ` + productId, (err,result) => {
 
@@ -25,7 +21,7 @@ router.get('/products/:id', (req, res) => {
   });
 });
 
-router.post('/products', (req, res) => {
+router.post('/', (req, res) => {
   const newProduct = req.body;
   //title, price, description, category, image
   console.log(JSON.stringify(newProduct));
@@ -41,7 +37,7 @@ router.post('/products', (req, res) => {
   
 });
 
-router.put('/products/:id', (req, res) => {
+router.put('/:id', (req, res) => {
   const productId = parseInt(req.params.id, 10);
   const updatedProduct = req.body;
 
@@ -58,9 +54,15 @@ router.put('/products/:id', (req, res) => {
   res.json({ id: productId, ...updatedProduct });
 });
 
-router.delete('/products/:id', (req, res) => {
+router.delete('/:id', (req, res) => {
   const productId = parseInt(req.params.id, 10);
-  // In a real application, you would delete the product from the database here
+  
+  db.query('DELETE FROM products WHERE id = ?', [productId], (err, result) => {
+    if (err) {
+      return res.status(500).send('Error deleting product');
+    }
+  });
+
   res.status(204).send();
 });
 
